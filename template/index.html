@@ -1,0 +1,212 @@
+{% load static %} <!--charge la balise de modèle statique à partir de l'application
+contrib qui a plus de fonctionnalités que le django intégré-->
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CNRST Scraping</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}"/>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!---->
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'css/offcanvas.css' %}" rel="stylesheet">
+
+    <!--Quelques modifications du style de notre page-->
+    <style>
+         #menu_element_selected{
+            background-color: #e3f2fd;
+         }
+         #logo{
+            width: 30px;
+            height: 30px;
+         }
+         #logo_avant_selection_menu, #logo_avant_selection_menu1{
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 40%;
+         }
+         #btn_instagram{
+            background: radial-gradient(circle farthest-corner at 35% 90%, #fec564, transparent 50%), radial-gradient(circle farthest-corner at 0 140%, #fec564, transparent 50%), radial-gradient(ellipse farthest-corner at 0 -25%, #5258cf, transparent 50%), radial-gradient(ellipse farthest-corner at 20% -50%, #5258cf, transparent 50%), radial-gradient(ellipse farthest-corner at 100% 0, #893dc2, transparent 50%), radial-gradient(ellipse farthest-corner at 60% -20%, #893dc2, transparent 50%), radial-gradient(ellipse farthest-corner at 100% 100%, #d9317a, transparent), linear-gradient(#6559ca, #bc318f 30%, #e33f5f 50%, #f77638 70%, #fec66d 100%);
+            color: white;
+         }
+
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg fixed-top navbar-light" id="Nav" aria-label="Main navigation" style="background-color: #e3f2fd;">
+    <div class="container-fluid">
+        <!--*** Logo de l'application ***-->
+        <img id="logo" src="{% static 'img/logo.png' %}">
+        <!--Ce boutton nous permet d'afficher le menu si on est dans un écran plus petit-->
+        <button class="navbar-toggler p-0 border-0" type="button" id="navbarSideCollapse" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!--*** Menu ***-->
+
+                <!--On affiche tout les elements du menu créés par l'utilisateur à l'aide d'une boucle-->
+                {% for element in menu_element%}
+                <li class="nav-item">
+                    <!--Le nom de chaque element sous forme d'un lien cliquable pour pouvoir accéder au sous-menu-->
+                    <a class="nav-link {% if element.id == menu_element_selected.id %} active {% endif %}"
+                       aria-current="page" href="{% url 'menu' element.id %}">{{element.intitule}}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ** Si on a pas encore sélectionner un élément du menu on affiche une image **-->
+{% if request.path == '/' %}
+    <img src="{% static 'img/logo1.png' %}" id="logo_avant_selection_menu">
+{% else %}
+<!--Sinnon (si on a selectinonné un element) on affiche le sous menu de l'element selectionné-->
+<div class="nav-scroller bg-body shadow-sm">
+    <nav class="nav nav-underline" aria-label="Secondary navigation">
+
+        <!--Nom du menu selectionné-->
+        <a class="nav-link active" id="menu_element_selected" aria-current="page" href="#">{{menu_element_selected.intitule}}</a>
+
+        <!--*** Sous menu ***-->
+        {% for sous_element in sous_menu_list %}
+        <li class="nav-item">
+            <a class="nav-link {% if sous_element.id == sous_menu_element_selected.id %} active {% endif %}"
+               href="{% url 'sous_menu' sous_element.id %}">{{sous_element.intitule}}</a>
+        </li>
+        {% endfor %}
+    </nav>
+</div>
+
+<!-- Si on a pas encore sélectionné un élément du sous-menu on affiche une image -->
+
+{% if is_logo_display == True %}
+    <img src="{% static 'img/logo1.png' %}" id="logo_avant_selection_menu1">
+{% else %}
+<!--Sinnon (si on a selectinonné un element) on affiche les articles de l'element selectionné-->
+
+        <main class="container">
+            <div class="my-3 p-3 bg-body rounded shadow-sm">
+
+                <!--Les articles de Youtube-->
+                    {% if sous_menu_element_selected_sraping_type == 'youtube'%} <!--Si l'element du sous-menu selectionné est youtube-->
+                    <h6 class="border-bottom pb-2 mb-0">Les articles de {{sous_menu_element_selected}}</h6>
+                    {% for article in block_scraping_list %}
+                    <div class="d-flex text-muted pt-3">
+                        <!--Affichage de la vidéo-->
+                        <iframe width="150" height="90" src={{article.id}}
+                                title="YouTube video player" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
+                        <!--Un espace entre la vidéo et sa description-->
+                        <p>&nbsp; </p>
+
+                        <!--Les elements des articles-->
+
+                        <p class="pb-3 mb-0 small lh-sm border-bottom">
+
+                            <strong class="d-block text-gray-dark">{{article.title}}</strong>
+                            {{article.Views}} {{article.Period}}
+                            <br/>
+                            <a class="btn btn-danger btn-sm" href={{article.Link}} target="_blank">Visiter</a><!--Un boutton pour regarder la vidéo sur Youtube-->
+                        </p>
+
+
+                    </div>
+
+                    {% endfor %}
+                    {% endif %}
+
+                    <!--Les articles de Youtube playlist-->
+                    {% if sous_menu_element_selected_sraping_type == 'youtube_playlist'%} <!--Si l'element selectionné est youtube_playlist-->
+                    <h6 class="border-bottom pb-2 mb-0">Les articles de {{sous_menu_element_selected}}</h6>
+                    {% for article in block_scraping_list %}
+                    <div class="d-flex text-muted pt-3">
+                        <!--Affichage de la vidéo-->
+                        <iframe width="150" height="90" src={{article.id}}
+                                title="YouTube video player" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
+                        <!--Un espace entre la vidéo et sa description-->
+                        <p>&nbsp; </p>
+
+                        <!--Les elements des articles-->
+
+                        <p class="pb-3 mb-0 small lh-sm border-bottom">
+                            <strong class="d-block text-gray-dark">{{article.title}}</strong>
+                            <br/>
+                            <a class="btn btn-danger btn-sm" href={{article.Link}} target="_blank">Visiter</a><!--Un boutton pour regarder la playlist sur Youtube-->
+                        </p>
+
+
+                    </div>
+
+                    {% endfor %}
+                    {% endif %}
+
+                    <!--Les articles de Facebook-->
+                    {% if sous_menu_element_selected_sraping_type == 'facebook'%} <!--Si l'element selectionné est facebook-->
+                    <h6 class="border-bottom pb-2 mb-0">Les articles de {{sous_menu_element_selected}}</h6>
+                    {% for article in block_scraping_list %}
+                    <div class="d-flex text-muted pt-3">
+                        <img  src={{article.src}} width="150" height="90"><!--L'image de l'article-->
+                        <p>&nbsp; </p>
+
+                        <!--Les elements des articles-->
+
+                        <p class="pb-3 mb-0 small lh-sm border-bottom">
+                            <strong class="d-block text-gray-dark">{{article.name}}</strong><!--Le nom de l'article-->
+                            Prix: {{article.price}} <br/> <!--Le prix-->
+                            Adresse: {{article.adr}} <!--L'adresse de location de l'article-->
+                            <br/>
+                            <a class="btn btn-primary btn-sm" href="https://web.facebook.com/marketplace/category/electronics" target="_blank">Visiter</a>
+                        </p>
+
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!--Les articles de Instagram-->
+                    {% if sous_menu_element_selected_sraping_type == 'instagram'%} <!--Si l'element selectionné est instagram-->
+                    <h6 class="border-bottom pb-2 mb-0">Les articles de {{sous_menu_element_selected}}</h6>
+                    {% for article in block_scraping_list %}
+                    <div class="d-flex text-muted pt-3">
+                        <img src="{% static 'img/instagram_logo.png' %}" width="90" height="90"><!--Logo de instagram-->
+                        <p>&nbsp; </p>
+
+                        <!--Les elements des articles-->
+
+                        <p class="pb-3 mb-0 small lh-sm border-bottom">
+                            <strong class="d-block text-gray-dark">Lien: {{article.link_ig}}</strong> <!--Le lien-->
+                            <br/>
+                            <a class="btn btn-sm" href="" target="_blank" id="btn_instagram">Visiter</a>
+                        </p>
+
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+
+            </div>
+            <!---->
+        </main>
+{% endif %} <!--fin de if path.name== menu-->
+
+        <!--L'appel aux fichiers javascript utilisés pour la template de bootstrap utilisée-->
+        <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+        <script src="{% static 'js/offcanvas.js' %}"></script>
+
+{% endif %} <!--fin de if request.path=='/' -->
+</body>
+</html>
